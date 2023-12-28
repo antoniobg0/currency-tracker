@@ -18,6 +18,8 @@ import XRP from '../assets/icons/XRP.png';
 import LITECOIN from '../assets/icons/LITECOIN.png';
 import BNB from '../assets/icons/BNB.png';
 import DOGECOIN from '../assets/icons/DOGECOIN.png'
+import WBTC from '../assets/icons/WBTC.png'
+import TON from '../assets/icons/TON.png'
 
 // Icon Dictionary.
 const iconDic = new Map();
@@ -42,5 +44,7 @@ iconDic.set('SHIB', SHIBA_INU);
 iconDic.set('BTC', BTC);
 iconDic.set('UNI',  UNISWAP);
 iconDic.set('STETH', LIDO_STAKED);
+iconDic.set('WBTC', WBTC);
+iconDic.set('TON', TON);
 
 export default iconDic;

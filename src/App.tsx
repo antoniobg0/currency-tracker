@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Autocomplete,
   Box,
@@ -7,27 +7,36 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import ConcurrencyList from "./components/Currencies";
-import { useCurrency } from "./hooks/useCurrency";
+import CurrencyList from "./components/Currencies";
+import useCurrency from "./hooks/useCurrency";
 import Currency from "./models/Concurrency";
 
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Loading from "./components/Loading";
-import { getFromStorage, saveToStorage } from "./utils/storage";
 
 const App = (): JSX.Element => {
-  const [myCurrencies, setMyCurrencies] = useState<Currency[]>([]);
   const [searchBy, setSearchBy] = useState("");
-  const { loading, currencies, refresh } = useCurrency();
+  const {
+    loading,
+    currencies,
+    myCurrencies,
+    setMyCurrencies,
+    updateLocalCurrencies,
+    refresh,
+  } = useCurrency();
 
+  // Filter without mutating original data.
   const filteredCurrencies = useMemo(() => {
-    return currencies
-      .filter(
-        (currency) =>
-          !myCurrencies.find((mCurrency) => mCurrency.id === currency.id)
-      )
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .filter((currency) => currency.name.includes(searchBy));
+    return (
+      currencies
+        .filter(
+          (currency) =>
+            !myCurrencies.find((mCurrency) => mCurrency.id === currency.id)
+        )
+        .sort((a, b) => a.name.localeCompare(b.name))
+        // This can be also api level search, however to maintain simplicity in this example I used the already fetched data.
+        .filter((currency) => currency.name.includes(searchBy))
+    );
   }, [currencies, myCurrencies, searchBy]);
 
   const onTrackHandler = useCallback(
@@ -36,11 +45,11 @@ const App = (): JSX.Element => {
 
       tmpMyCurrencies.push(currency);
 
-      saveToStorage(tmpMyCurrencies);
+      updateLocalCurrencies(tmpMyCurrencies);
 
       setMyCurrencies(tmpMyCurrencies);
     },
-    [myCurrencies]
+    [myCurrencies, setMyCurrencies, updateLocalCurrencies]
   );
 
   const onUnTrackHandler = useCallback(
@@ -49,24 +58,24 @@ const App = (): JSX.Element => {
 
       tmpMyCurrencies = tmpMyCurrencies.filter((c) => c.id !== currency.id);
 
-      saveToStorage(tmpMyCurrencies);
+      updateLocalCurrencies(tmpMyCurrencies);
 
       setMyCurrencies(tmpMyCurrencies);
     },
-    [myCurrencies]
+    [myCurrencies, setMyCurrencies, updateLocalCurrencies]
   );
 
-  useEffect(() => {
-    const localMyCurrencies = getFromStorage();
-
-    setMyCurrencies(localMyCurrencies);
-  }, []);
+  const onRefreshHandler = () => {
+    refresh();
+    setSearchBy("");
+  };
 
   return (
     <Box sx={{ p: 4 }}>
       <Typography
         align="center"
         marginBottom={14}
+        fontWeight={600}
         sx={{ fontSize: { xs: 48, md: 72 } }}
       >
         Crypto Tracker
@@ -75,7 +84,7 @@ const App = (): JSX.Element => {
       <Box sx={{ display: "flex", justifyContent: "end", marginBottom: 4 }}>
         <Button
           disabled={loading}
-          onClick={refresh}
+          onClick={onRefreshHandler}
           variant="contained"
           startIcon={<RefreshIcon />}
           sx={{
@@ -132,7 +141,7 @@ const App = (): JSX.Element => {
                 <Typography variant="h4" marginY={5}>
                   Currencies
                 </Typography>
-                <ConcurrencyList
+                <CurrencyList
                   data={filteredCurrencies}
                   onTrack={onTrackHandler}
                 />
@@ -143,7 +152,7 @@ const App = (): JSX.Element => {
                 <Typography variant="h4" marginY={5}>
                   My Currencies
                 </Typography>
-                <ConcurrencyList
+                <CurrencyList
                   data={myCurrencies}
                   onUnTrack={onUnTrackHandler}
                 />

@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  Avatar,
-  IconButton,
   Paper,
   Table,
   TableBody,
@@ -9,14 +7,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
 import Currency from "../../models/Concurrency";
-import iconDic from "../../utils/iconDic";
-import formatter from "../../utils/currencyFormatter";
 
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
+import CurrencyRow from "./CurrencyRow";
 
 interface CurrenciesBase {
   data: Currency[];
@@ -40,7 +34,7 @@ const Currencies = ({ data, onTrack, onUnTrack }: Currencies): JSX.Element => {
       component={Paper}
       sx={{ height: { xs: "auto", md: "calc(100vh - 565px)" } }}
     >
-      <Table aria-label="currency table">
+      <Table stickyHeader aria-label="currency table">
         <TableHead>
           <TableRow>
             <TableCell></TableCell>
@@ -51,51 +45,14 @@ const Currencies = ({ data, onTrack, onUnTrack }: Currencies): JSX.Element => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((currency) => {
-            const percentChangeUsdLast24Hours =
-              currency.metrics.marketData.percentChangeUsdLast24Hours;
-            const price = formatter("USD").format(
-              currency.metrics.marketData.priceUsd
-            );
-
-            const Icon = onTrack ? AddIcon : DeleteIcon;
-
-            return (
-              <TableRow
-                key={currency.name}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  <Avatar
-                    src={iconDic.get(currency.symbol)}
-                    sx={{ width: 65, height: 65 }}
-                  />
-                </TableCell>
-                <TableCell align="left">{currency.name}</TableCell>
-                <TableCell align="left" sx={{ fontWeight: 500 }}>
-                  {price}
-                </TableCell>
-                <TableCell align="left">
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      color: percentChangeUsdLast24Hours >= 0 ? "green" : "red",
-                    }}
-                  >
-                    {percentChangeUsdLast24Hours.toString().slice(0, 8)}%
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    edge="end"
-                    onClick={() => onTrack?.(currency) ?? onUnTrack?.(currency)}
-                  >
-                    <Icon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {data.map((currency) => (
+            <CurrencyRow
+              key={currency.name}
+              remove={!!onUnTrack}
+              onClick={() => onTrack?.(currency) ?? onUnTrack?.(currency)}
+              currency={currency}
+            />
+          ))}
         </TableBody>
       </Table>
     </TableContainer>
